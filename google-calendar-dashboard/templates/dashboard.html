@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Calendar Dashboard</h1>
+            <div id="clock"></div>
+        </header>
+
+        <div id="countdown-banner" class="countdown-banner hidden">
+            <div class="countdown-label">Next event in</div>
+            <div id="countdown-timer" class="countdown-timer"></div>
+            <div id="countdown-event-name" class="countdown-event-name"></div>
+        </div>
+
+        <div id="error-message" class="error hidden"></div>
+        <div id="loading" class="loading">Loading events...</div>
+
+        <div id="events-container" class="events-container"></div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

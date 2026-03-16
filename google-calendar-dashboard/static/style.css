@@ -1,0 +1,218 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #0f0f0f;
+    color: #e0e0e0;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 16px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+#clock {
+    font-size: 1.25rem;
+    color: #888;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Countdown banner */
+.countdown-banner {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 1px solid #2a2a4a;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.countdown-label {
+    font-size: 0.85rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.countdown-timer {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #4fc3f7;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 2px;
+}
+
+.countdown-event-name {
+    font-size: 1rem;
+    color: #aaa;
+    margin-top: 8px;
+}
+
+/* Events */
+.events-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.day-group {
+    margin-bottom: 16px;
+}
+
+.day-header {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 8px 0;
+    border-bottom: 1px solid #1a1a1a;
+    margin-bottom: 8px;
+}
+
+.event-card {
+    display: flex;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #1a1a1a;
+    border-radius: 8px;
+    border-left: 4px solid #4285f4;
+    transition: background 0.15s;
+}
+
+.event-card:hover {
+    background: #222;
+}
+
+.event-time {
+    min-width: 80px;
+    flex-shrink: 0;
+}
+
+.event-time-start {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.event-time-end {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.event-time-allday {
+    font-size: 0.85rem;
+    color: #4fc3f7;
+    font-weight: 500;
+}
+
+.event-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.event-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #eee;
+    margin-bottom: 4px;
+}
+
+.event-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.event-title a:hover {
+    text-decoration: underline;
+}
+
+.event-meta {
+    font-size: 0.8rem;
+    color: #777;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.event-location::before {
+    content: "\1F4CD ";
+}
+
+.event-calendar::before {
+    content: "\1F4C5 ";
+}
+
+.event-description {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 6px;
+    line-height: 1.4;
+    max-height: 3.6em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Status */
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    font-size: 1rem;
+}
+
+.error {
+    background: #2d1515;
+    border: 1px solid #5c2020;
+    color: #f48771;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .container {
+        padding: 16px 12px;
+    }
+
+    .countdown-timer {
+        font-size: 1.8rem;
+    }
+
+    .event-card {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .event-time {
+        min-width: unset;
+    }
+}
