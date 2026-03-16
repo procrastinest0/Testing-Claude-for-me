@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calorie Intake</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+      background: #f2f2f7;
+      color: #1c1c1e;
+      min-height: 100vh;
+      padding: 0 0 60px;
+    }
+
+    /* ── Header ── */
+    header {
+      background: rgba(242,242,247,0.85);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+    header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+    }
+    header p.subtitle {
+      font-size: 13px;
+      color: #8e8e93;
+      margin-top: 2px;
+    }
+
+    /* ── Section card ── */
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      margin: 16px 16px 0;
+      overflow: hidden;
+    }
+    .card-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: 16px 16px 0;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #8e8e93;
+    }
+    .card-value {
+      font-size: 13px;
+      color: #8e8e93;
+    }
+
+    /* ── Week selector ── */
+    .week-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px 0;
+    }
+    .week-label {
+      font-size: 17px;
+      font-weight: 600;
+      flex: 1;
+    }
+    .week-btn {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: #f2f2f7;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      color: #007aff;
+      transition: background 0.15s;
+    }
+    .week-btn:hover { background: #e5e5ea; }
+    .week-btn:disabled { color: #c7c7cc; cursor: default; }
+
+    /* ── Bar Chart ── */
+    .chart-wrap {
+      padding: 16px 16px 4px;
+    }
+    .bars-area {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      height: 140px;
+      gap: 6px;
+      position: relative;
+    }
+    /* horizontal grid lines */
+    .bars-area::before, .bars-area::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      pointer-events: none;
+    }
+    .bars-area::before { top: 0; }
+    .bars-area::after  { top: 50%; }
+
+    .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      justify-content: flex-end;
+      cursor: pointer;
+      gap: 0;
+    }
+    .bar {
+      width: 100%;
+      border-radius: 6px 6px 0 0;
+      background: #007aff;
+      transition: height 0.4s cubic-bezier(.34,1.56,.64,1), background 0.2s;
+      min-height: 0;
+      position: relative;
+    }
+    .bar.today {
+      background: #30d158;
+    }
+    .bar.selected {
+      filter: brightness(1.15);
+    }
+    .bar.over-goal {
+      background: #ff3b30;
+    }
+    .bar.today.over-goal {
+      background: #ff3b30;
+    }
+
+    .bar-label {
+      font-size: 11px;
+      color: #8e8e93;
+      margin-top: 5px;
+      font-weight: 500;
+    }
+    .bar-label.today-label {
+      color: #30d158;
+      font-weight: 700;
+    }
+    .bar-label.selected-label {
+      color: #007aff;
+      font-weight: 700;
+    }
+    .bar-label.today-label.selected-label {
+      color: #30d158;
+    }
+
+    /* ── Selection detail ── */
+    .selection-detail {
+      margin: 0 16px;
+      padding: 12px 0 4px;
+      border-top: 1px solid rgba(0,0,0,0.06);
+    }
+    .sel-day {
+      font-size: 13px;
+      color: #8e8e93;
+      font-weight: 500;
+    }
+    .sel-cals {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      line-height: 1.1;
+    }
+    .sel-cals span {
+      font-size: 17px;
+      font-weight: 400;
+      color: #8e8e93;
+      letter-spacing: 0;
+    }
+    .sel-goal-line {
+      font-size: 13px;
+      color: #8e8e93;
+      margin-top: 2px;
+    }
+    .over { color: #ff3b30; }
+    .under { color: #30d158; }
+
+    /* ── Goal strip ── */
+    .goal-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px 16px;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      margin-top: 4px;
+    }
+    .goal-strip label {
+      font-size: 15px;
+      color: #1c1c1e;
+      font-weight: 500;
+    }
+    .goal-input-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .goal-input-row input {
+      width: 80px;
+      text-align: right;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      outline: none;
+      background: #f2f2f7;
+      border-radius: 8px;
+      padding: 5px 8px;
+    }
+    .goal-input-row span {
+      font-size: 13px;
+      color: #8e8e93;
+    }
+
+    /* ── Today summary pills ── */
+    .summary-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin: 16px 16px 0;
+    }
+    .pill {
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px 12px;
+      text-align: center;
+    }
+    .pill-val {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .pill-label {
+      font-size: 11px;
+      color: #8e8e93;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-top: 2px;
+    }
+
+    /* ── Add Meal Form ── */
+    .form-card {
+      background: #fff;
+      border-radius: 16px;
+      margin: 16px 16px 0;
+      padding: 16px;
+    }
+    .form-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #8e8e93;
+      margin-bottom: 14px;
+    }
+    .input-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .field {
+      display: flex;
+      align-items: center;
+      background: #f2f2f7;
+      border-radius: 10px;
+      padding: 0 14px;
+      height: 44px;
+      gap: 10px;
+    }
+    .field-icon {
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+    .field input, .field select {
+      flex: 1;
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 15px;
+      font-family: inherit;
+      color: #1c1c1e;
+    }
+    .field input::placeholder { color: #c7c7cc; }
+    .field-unit {
+      font-size: 13px;
+      color: #8e8e93;
+      flex-shrink: 0;
+    }
+
+    .add-btn {
+      margin-top: 12px;
+      width: 100%;
+      height: 50px;
+      border-radius: 12px;
+      background: #007aff;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .add-btn:active { background: #005ecb; transform: scale(0.98); }
+
+    /* ── Meal Log ── */
+    .meals-card {
+      background: #fff;
+      border-radius: 16px;
+      margin: 16px 16px 0;
+      overflow: hidden;
+    }
+    .meals-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .meals-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #8e8e93;
+    }
+    .meals-date {
+      font-size: 13px;
+      color: #8e8e93;
+    }
+    .meal-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      gap: 12px;
+    }
+    .meal-item:last-child { border-bottom: none; }
+    .meal-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #007aff;
+      flex-shrink: 0;
+    }
+    .meal-info { flex: 1; min-width: 0; }
+    .meal-name {
+      font-size: 15px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .meal-time {
+      font-size: 13px;
+      color: #8e8e93;
+      margin-top: 1px;
+    }
+    .meal-cals {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1c1c1e;
+    }
+    .meal-del {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      color: #ff3b30;
+      line-height: 1;
+      padding: 2px 4px;
+      margin-left: 4px;
+      opacity: 0.6;
+      transition: opacity 0.15s;
+    }
+    .meal-del:hover { opacity: 1; }
+
+    .empty-meals {
+      padding: 28px 16px;
+      text-align: center;
+      color: #8e8e93;
+      font-size: 15px;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: rgba(44,44,46,0.92);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 200;
+      transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), opacity 0.3s;
+      opacity: 0;
+      white-space: nowrap;
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Calories</h1>
+  <p class="subtitle">Daily intake tracker</p>
+</header>
+
+<!-- ── Week Chart Card ── -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Weekly Overview</span>
+    <span class="card-value" id="avg-label"></span>
+  </div>
+  <div class="week-nav">
+    <span class="week-label" id="week-label"></span>
+    <button class="week-btn" id="btn-prev" title="Previous week">‹</button>
+    <button class="week-btn" id="btn-next" title="Next week">›</button>
+  </div>
+  <div class="chart-wrap">
+    <div class="bars-area" id="bars-area"></div>
+    <div id="bar-labels" style="display:flex;justify-content:space-between;gap:6px;"></div>
+  </div>
+
+  <div class="selection-detail" id="sel-detail"></div>
+
+  <div class="goal-strip">
+    <label>Daily Goal</label>
+    <div class="goal-input-row">
+      <input type="number" id="goal-input" min="500" max="9999" step="50" />
+      <span>kcal</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── Today Pills ── -->
+<div class="summary-row">
+  <div class="pill">
+    <div class="pill-val" id="pill-total">—</div>
+    <div class="pill-label">Today</div>
+  </div>
+  <div class="pill">
+    <div class="pill-val" id="pill-remain">—</div>
+    <div class="pill-label">Remaining</div>
+  </div>
+  <div class="pill">
+    <div class="pill-val" id="pill-meals">0</div>
+    <div class="pill-label">Meals</div>
+  </div>
+</div>
+
+<!-- ── Add Meal Form ── -->
+<div class="form-card">
+  <div class="form-title">Add Meal</div>
+  <div class="input-row">
+    <div class="field">
+      <span class="field-icon">🍽</span>
+      <input type="text" id="meal-name" placeholder="Meal name (e.g. Oatmeal)" maxlength="60" />
+    </div>
+    <div class="field">
+      <span class="field-icon">🔥</span>
+      <input type="number" id="meal-cals" placeholder="0" min="1" max="9999" />
+      <span class="field-unit">kcal</span>
+    </div>
+    <div class="field">
+      <span class="field-icon">🕐</span>
+      <input type="time" id="meal-time" />
+    </div>
+    <div class="field">
+      <span class="field-icon">📋</span>
+      <select id="meal-type">
+        <option value="Breakfast">Breakfast</option>
+        <option value="Lunch">Lunch</option>
+        <option value="Dinner">Dinner</option>
+        <option value="Snack">Snack</option>
+        <option value="Drink">Drink</option>
+      </select>
+    </div>
+  </div>
+  <button class="add-btn" id="add-btn">Add</button>
+</div>
+
+<!-- ── Meal Log ── -->
+<div class="meals-card">
+  <div class="meals-header">
+    <span class="meals-title">Today's Log</span>
+    <span class="meals-date" id="log-date"></span>
+  </div>
+  <div id="meal-list"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Helpers ──────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const DAY_MS = 86400000;
+
+function dateKey(d) {
+  return d.toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+function today() { return new Date(); }
+
+function startOfWeek(d) {
+  const d2 = new Date(d);
+  const day = d2.getDay(); // 0 Sun
+  d2.setDate(d2.getDate() - day);
+  d2.setHours(0, 0, 0, 0);
+  return d2;
+}
+
+function formatDate(d) {
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function formatTime(t) { // "HH:MM" → "8:30 AM"
+  if (!t) return '';
+  const [h, m] = t.split(':').map(Number);
+  const ampm = h < 12 ? 'AM' : 'PM';
+  const hr = h % 12 || 12;
+  return `${hr}:${m.toString().padStart(2,'0')} ${ampm}`;
+}
+
+// ── State ────────────────────────────────────────────────────
+let state = load();
+
+function load() {
+  try {
+    const raw = localStorage.getItem('calorie-dash');
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return { goal: 2000, meals: {}, selectedDate: null };
+}
+
+function save() {
+  localStorage.setItem('calorie-dash', JSON.stringify(state));
+}
+
+function todayMeals() {
+  return state.meals[dateKey(today())] || [];
+}
+
+function mealsByDate(key) {
+  return state.meals[key] || [];
+}
+
+function totalCals(key) {
+  return (state.meals[key] || []).reduce((s, m) => s + m.cals, 0);
+}
+
+// ── Week navigation ──────────────────────────────────────────
+let weekOffset = 0; // 0 = current week
+
+function weekDates(offset) {
+  const sw = startOfWeek(today());
+  sw.setDate(sw.getDate() + offset * 7);
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(sw);
+    d.setDate(d.getDate() + i);
+    return d;
+  });
+}
+
+// ── Render chart ─────────────────────────────────────────────
+const DAY_ABBR = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+function renderChart() {
+  const dates = weekDates(weekOffset);
+  const todayKey = dateKey(today());
+  const goal = state.goal;
+
+  // week label
+  const first = dates[0], last = dates[6];
+  $('week-label').textContent =
+    first.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' – ' +
+    last.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+  // nav buttons
+  $('btn-next').disabled = weekOffset >= 0;
+
+  // totals for this week
+  const totals = dates.map(d => totalCals(dateKey(d)));
+  const maxVal = Math.max(goal * 1.1, ...totals, 100);
+
+  // avg label (only days that have data)
+  const withData = totals.filter(v => v > 0);
+  if (withData.length) {
+    const avg = Math.round(withData.reduce((a,b)=>a+b,0)/withData.length);
+    $('avg-label').textContent = `Avg ${avg.toLocaleString()} kcal`;
+  } else {
+    $('avg-label').textContent = '';
+  }
+
+  // selected day
+  if (!state.selectedDate) state.selectedDate = todayKey;
+  const selKey = state.selectedDate;
+
+  // bars
+  const barsArea = $('bars-area');
+  const labelsRow = $('bar-labels');
+  barsArea.innerHTML = '';
+  labelsRow.innerHTML = '';
+
+  dates.forEach((d, i) => {
+    const key = dateKey(d);
+    const cals = totals[i];
+    const isToday = key === todayKey;
+    const isSel   = key === selKey;
+    const isOver  = cals > goal;
+    const isFuture = d > today() && !isToday;
+
+    const pct = isFuture ? 0 : Math.min(cals / maxVal, 1);
+
+    // column
+    const col = document.createElement('div');
+    col.className = 'bar-col';
+    col.dataset.key = key;
+
+    const bar = document.createElement('div');
+    bar.className = 'bar' + (isToday ? ' today' : '') + (isSel ? ' selected' : '') + (isOver ? ' over-goal' : '');
+    bar.style.height = (pct * 100) + '%';
+
+    col.appendChild(bar);
+    col.addEventListener('click', () => {
+      state.selectedDate = key;
+      save();
+      renderChart();
+      renderSelDetail();
+      renderMealLog();
+    });
+    barsArea.appendChild(col);
+
+    // label
+    const lbl = document.createElement('div');
+    lbl.className = 'bar-label' +
+      (isToday ? ' today-label' : '') +
+      (isSel ? ' selected-label' : '');
+    lbl.style.flex = '1';
+    lbl.style.textAlign = 'center';
+    lbl.style.fontSize = '11px';
+    lbl.style.color = isSel ? '#007aff' : '#8e8e93';
+    if (isToday) lbl.style.color = '#30d158';
+    lbl.textContent = DAY_ABBR[d.getDay()];
+    labelsRow.appendChild(lbl);
+  });
+
+  renderSelDetail();
+  renderPills();
+  renderMealLog();
+}
+
+function renderSelDetail() {
+  const selKey = state.selectedDate || dateKey(today());
+  const cals = totalCals(selKey);
+  const goal = state.goal;
+  const diff = goal - cals;
+  const todayKey = dateKey(today());
+  const d = new Date(selKey);
+
+  let dayStr = selKey === todayKey ? 'Today' :
+               selKey === dateKey(new Date(today().getTime() - DAY_MS)) ? 'Yesterday' :
+               d.toLocaleDateString('en-US', { weekday:'long', month:'short', day:'numeric' });
+
+  const overUnder = diff < 0
+    ? `<span class="over">${Math.abs(diff).toLocaleString()} kcal over goal</span>`
+    : `<span class="under">${diff.toLocaleString()} kcal remaining</span>`;
+
+  $('sel-detail').innerHTML = `
+    <div class="sel-day">${dayStr}</div>
+    <div class="sel-cals">${cals > 0 ? cals.toLocaleString() : '—'} <span>kcal</span></div>
+    ${cals > 0 ? `<div class="sel-goal-line">${overUnder}</div>` : ''}
+  `;
+}
+
+function renderPills() {
+  const todayKey = dateKey(today());
+  const cals = totalCals(todayKey);
+  const goal = state.goal;
+  const remain = goal - cals;
+  const meals = mealsByDate(todayKey);
+
+  $('pill-total').textContent = cals > 0 ? cals.toLocaleString() : '—';
+  $('pill-total').style.color = cals > goal ? '#ff3b30' : '#1c1c1e';
+
+  if (cals === 0) {
+    $('pill-remain').textContent = goal.toLocaleString();
+    $('pill-remain').style.color = '#1c1c1e';
+  } else if (remain < 0) {
+    $('pill-remain').textContent = Math.abs(remain).toLocaleString();
+    $('pill-remain').style.color = '#ff3b30';
+  } else {
+    $('pill-remain').textContent = remain.toLocaleString();
+    $('pill-remain').style.color = '#30d158';
+  }
+
+  $('pill-meals').textContent = meals.length;
+}
+
+// ── Meal log ─────────────────────────────────────────────────
+const MEAL_COLORS = {
+  Breakfast: '#ff9f0a',
+  Lunch: '#30d158',
+  Dinner: '#007aff',
+  Snack: '#af52de',
+  Drink: '#5ac8fa',
+};
+
+function renderMealLog() {
+  const selKey = state.selectedDate || dateKey(today());
+  const todayKey = dateKey(today());
+  const isToday = selKey === todayKey;
+  const meals = mealsByDate(selKey).slice().reverse(); // newest first
+
+  const d = new Date(selKey);
+  $('log-date').textContent = isToday ? 'Today' :
+    d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+  const list = $('meal-list');
+  if (meals.length === 0) {
+    list.innerHTML = `<div class="empty-meals">No meals logged${isToday ? ' yet' : ''}</div>`;
+    return;
+  }
+
+  list.innerHTML = meals.map((m, ri) => {
+    const origIdx = mealsByDate(selKey).length - 1 - ri; // index in original array
+    const color = MEAL_COLORS[m.type] || '#007aff';
+    return `
+      <div class="meal-item">
+        <div class="meal-dot" style="background:${color}"></div>
+        <div class="meal-info">
+          <div class="meal-name">${escHtml(m.name)}</div>
+          <div class="meal-time">${m.type}${m.time ? ' · ' + formatTime(m.time) : ''}</div>
+        </div>
+        <div class="meal-cals">${m.cals.toLocaleString()}</div>
+        ${isToday || selKey === todayKey ? `<button class="meal-del" data-idx="${origIdx}" title="Remove">×</button>` : ''}
+      </div>`;
+  }).join('');
+
+  list.querySelectorAll('.meal-del').forEach(btn => {
+    btn.addEventListener('click', () => deleteMeal(selKey, +btn.dataset.idx));
+  });
+}
+
+function deleteMeal(key, idx) {
+  state.meals[key].splice(idx, 1);
+  if (state.meals[key].length === 0) delete state.meals[key];
+  save();
+  renderChart();
+}
+
+// ── Add meal ─────────────────────────────────────────────────
+function setDefaultTime() {
+  const now = new Date();
+  const hh = now.getHours().toString().padStart(2,'0');
+  const mm = now.getMinutes().toString().padStart(2,'0');
+  $('meal-time').value = `${hh}:${mm}`;
+}
+
+function inferMealType() {
+  const h = new Date().getHours();
+  if (h < 10) return 'Breakfast';
+  if (h < 14) return 'Lunch';
+  if (h < 17) return 'Snack';
+  if (h < 21) return 'Dinner';
+  return 'Snack';
+}
+
+$('add-btn').addEventListener('click', () => {
+  const name = $('meal-name').value.trim();
+  const cals = parseInt($('meal-cals').value);
+  const time = $('meal-time').value;
+  const type = $('meal-type').value;
+
+  if (!name) { showToast('Please enter a meal name'); $('meal-name').focus(); return; }
+  if (!cals || cals < 1) { showToast('Please enter calories'); $('meal-cals').focus(); return; }
+
+  const key = dateKey(today());
+  if (!state.meals[key]) state.meals[key] = [];
+  state.meals[key].push({ name, cals, time, type, ts: Date.now() });
+  state.selectedDate = key;
+  save();
+
+  $('meal-name').value = '';
+  $('meal-cals').value = '';
+  setDefaultTime();
+
+  showToast(`Added ${cals.toLocaleString()} kcal`);
+  renderChart();
+});
+
+// allow Enter on inputs
+[$('meal-name'), $('meal-cals')].forEach(el => {
+  el.addEventListener('keydown', e => { if (e.key === 'Enter') $('add-btn').click(); });
+});
+
+// ── Goal input ───────────────────────────────────────────────
+$('goal-input').value = state.goal;
+$('goal-input').addEventListener('change', () => {
+  const v = parseInt($('goal-input').value);
+  if (v >= 500 && v <= 9999) {
+    state.goal = v;
+    save();
+    renderChart();
+    showToast(`Goal set to ${v.toLocaleString()} kcal`);
+  }
+});
+
+// ── Week nav ─────────────────────────────────────────────────
+$('btn-prev').addEventListener('click', () => { weekOffset--; renderChart(); });
+$('btn-next').addEventListener('click', () => { weekOffset++; renderChart(); });
+
+// ── Toast ─────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── Log date ─────────────────────────────────────────────────
+$('log-date').textContent = today().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+// ── Escape HTML ──────────────────────────────────────────────
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Init ─────────────────────────────────────────────────────
+setDefaultTime();
+$('meal-type').value = inferMealType();
+renderChart();
+</script>
+</body>
+</html>
